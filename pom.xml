@@ -3,7 +3,7 @@
   <groupId>org.littleshoot</groupId>
   <artifactId>littleproxy</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.0-beta1-SNAPSHOT</version>
+  <version>1.0.0-beta9-NRFORK-SNAPSHOT</version>
   <name>LittleProxy</name>
   <description>
     LittleProxy is a high performance HTTP proxy written in Java and using the Netty networking framework. 
@@ -45,16 +45,16 @@
   </issueManagement>
 
   <scm>
-    <connection>scm:git:https://adamfisk@github.com/adamfisk/LittleProxy.git</connection>
-    <developerConnection>scm:git:git@github.com:adamfisk/LittleProxy</developerConnection>
-    <url>scm:git:git@github.com:adamfisk/LittleProxy.git</url>
+    <connection>scm:git:https://detro@github.com/detro/LittleProxy.git</connection>
+    <developerConnection>scm:git:git@github.com:detro/LittleProxy</developerConnection>
+    <url>scm:git:git@github.com:detro/LittleProxy.git</url>
   </scm>
 
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
+  <!--<parent>-->
+    <!--<groupId>org.sonatype.oss</groupId>-->
+    <!--<artifactId>oss-parent</artifactId>-->
+    <!--<version>7</version>-->
+  <!--</parent>-->
 
   <inceptionYear>2009</inceptionYear>
 
@@ -188,16 +188,16 @@
 -->
 
     <plugins>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.4.7</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>sonatype-nexus-staging</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-        </configuration>
-      </plugin>
+      <!--<plugin>-->
+        <!--<groupId>org.sonatype.plugins</groupId>-->
+        <!--<artifactId>nexus-staging-maven-plugin</artifactId>-->
+        <!--<version>1.4.7</version>-->
+        <!--<extensions>true</extensions>-->
+        <!--<configuration>-->
+          <!--<serverId>sonatype-nexus-staging</serverId>-->
+          <!--<nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -551,16 +551,32 @@
   </developers>
 
   <repositories>
+    <!--<repository>-->
+      <!--<id>sonatype-nexus-snapshots</id>-->
+      <!--<name>Sonatype Nexus Snapshots</name>-->
+      <!--<url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+      <!--<releases>-->
+        <!--<enabled>false</enabled>-->
+      <!--</releases>-->
+      <!--<snapshots>-->
+        <!--<enabled>true</enabled>-->
+      <!--</snapshots>-->
+    <!--</repository>-->
     <repository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
+      <id>pdx-artifacts</id>
+      <url>http://pdx-artifacts.pdx.vm.datanerd.us:8081/artifactory/repo</url>
     </repository>
   </repositories>
+  <distributionManagement>
+    <repository>
+      <id>pdx-artifacts</id>
+      <name>pdx-artifacts-releases</name>
+      <url>http://pdx-artifacts.pdx.vm.datanerd.us:8081/artifactory/newrelic-release-local</url>
+    </repository>
+    <snapshotRepository>
+      <id>pdx-artifacts</id>
+      <name>pdx-artifacts-snapshots</name>
+      <url>http://pdx-artifacts.pdx.vm.datanerd.us:8081/artifactory/newrelic-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
