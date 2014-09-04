@@ -902,18 +902,24 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * @param httpRequest
      */
     private void modifyRequestHeadersToReflectProxying(HttpRequest httpRequest) {
+        if (!currentServerConnection.hasUpstreamChainedProxy()) {
+            LOG.debug("Modifying request for proxy chaining");
+
+            // Strip host from uri
+            String uri = httpRequest.getUri();
+            String hostAndPort = ProxyUtils.parseHostAndPort(uri);
+            String adjustedUri = ProxyUtils.stripHost(uri);
+            LOG.debug("Stripped host from uri: {} yielding: {}", uri, adjustedUri);
+            httpRequest.setUri(adjustedUri);
+
+            // Ensure there is a Host header if it was missing
+            if (null == HttpHeaders.getHost(httpRequest)) {
+                HttpHeaders.setHost(httpRequest, hostAndPort);
+            }
+        }
+
         if (!proxyServer.isTransparent()) {
             LOG.debug("Modifying request headers for proxying");
-
-            if (!currentServerConnection.hasUpstreamChainedProxy()) {
-                LOG.debug("Modifying request for proxy chaining");
-                // Strip host from uri
-                String uri = httpRequest.getUri();
-                String adjustedUri = ProxyUtils.stripHost(uri);
-                LOG.debug("Stripped host from uri: {}    yielding: {}", uri,
-                        adjustedUri);
-                httpRequest.setUri(adjustedUri);
-            }
 
             HttpHeaders headers = httpRequest.headers();
 
