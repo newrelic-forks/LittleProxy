@@ -2,6 +2,8 @@ package org.littleshoot.proxy;
 
 import java.net.InetSocketAddress;
 
+import static java.lang.Thread.UncaughtExceptionHandler;
+
 /**
  * Configures and starts an {@link HttpProxyServer}. The HttpProxyServer is
  * built using {@link #start()}. Sensible defaults are available for all
@@ -268,7 +270,7 @@ public interface HttpProxyServerBootstrap {
     /**
      * Specify a custom {@link HostResolver} for resolving server addresses.
      * 
-     * @param resolver
+     * @param serverResolver
      * @return
      */
     HttpProxyServerBootstrap withServerResolver(HostResolver serverResolver);
@@ -282,6 +284,28 @@ public interface HttpProxyServerBootstrap {
      * @return
      */
     HttpProxyServerBootstrap plusActivityTracker(ActivityTracker activityTracker);
+
+    /**
+     * <p>
+     * Should LittleProxy register a Runtime Shutdown Hook to ensure proxy is stopped
+     * at JVM shutdown?
+     * </p>
+     *
+     * @param shutdownHook <code>true</code> (default value) to register hook,
+     *                     <code>false</code> otherwise
+     * @return
+     */
+    HttpProxyServerBootstrap withShutdownHook(boolean shutdownHook);
+
+    /**
+     * Set handler for exceptions thrown and not catched by Proxy threads.
+     *
+     * The default exception handler just logs the exception.
+     *
+     * @param handler An UncaughtExceptionHandler to handle the exception
+     * @return
+     */
+    HttpProxyServerBootstrap withThreadpoolUnchaughtExceptionHandler(UncaughtExceptionHandler handler);
 
     /**
      * <p>

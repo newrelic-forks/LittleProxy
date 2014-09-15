@@ -109,6 +109,8 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
     private final int connectTimeout;
     private volatile int idleConnectionTimeout;
     private final HostResolver serverResolver;
+    private final boolean shutdownHook;
+    private final UncaughtExceptionHandler uncaughtExceptionHandler;
 
     /**
      * Track all ActivityTrackers for tracking proxying activity.
@@ -203,7 +205,9 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
             int idleConnectionTimeout,
             Collection<ActivityTracker> activityTrackers,
             int connectTimeout,
-            HostResolver serverResolver) {
+            HostResolver serverResolver,
+            boolean shutdownHook,
+            UncaughtExceptionHandler uncaughtExceptionHandler) {
         this.serverGroup = serverGroup;
         this.transportProtocol = transportProtocol;
         this.requestedAddress = requestedAddress;
@@ -220,6 +224,8 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         }
         this.connectTimeout = connectTimeout;
         this.serverResolver = serverResolver;
+        this.shutdownHook = shutdownHook;
+        this.uncaughtExceptionHandler = uncaughtExceptionHandler;
     }
 
     boolean isTransparent() {
@@ -242,6 +248,14 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         return serverResolver;
     }
 
+    public boolean isShutdownHook() {
+        return shutdownHook;
+    }
+
+    public UncaughtExceptionHandler getUncaughtExceptionHandler() {
+        return uncaughtExceptionHandler;
+    }
+
     @Override
     public InetSocketAddress getListenAddress() {
         return boundAddress;
@@ -256,7 +270,7 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                 chainProxyManager,
                 mitmManager, filtersSource, transparent,
                 idleConnectionTimeout, activityTrackers, connectTimeout,
-                serverResolver);
+                serverResolver, shutdownHook, uncaughtExceptionHandler);
     }
 
     @Override
@@ -421,20 +435,20 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
 
         private volatile boolean stopped = false;
 
-        private ServerGroup(String name) {
+        private ServerGroup(String name, boolean shutdownHook, UncaughtExceptionHandler uncaughtExceptionHandler) {
             this.name = name;
 
-            Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-                public void uncaughtException(final Thread t, final Throwable e) {
-                    LOG.error("Uncaught throwable", e);
-                }
-            });
+            if (null != uncaughtExceptionHandler) {
+                Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);
+            }
 
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                public void run() {
-                    stop();
-                }
-            }));
+            if (shutdownHook) {
+                Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                    public void run() {
+                        stop();
+                    }
+                }));
+            }
         }
 
         public synchronized void ensureProtocol(
@@ -560,9 +574,13 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         private boolean transparent = false;
         private int idleConnectionTimeout = 70;
         private DefaultHttpProxyServer original;
-        private Collection<ActivityTracker> activityTrackers = new ConcurrentLinkedQueue<ActivityTracker>();
+        private Collection<ActivityTracker> activityTrackers =
+                new ConcurrentLinkedQueue<ActivityTracker>();
         private int connectTimeout = 40000;
         private HostResolver serverResolver = new DefaultHostResolver();
+        private boolean shutdownHook = true;
+        private UncaughtExceptionHandler uncaughtExceptionHandler =
+                new DefaultUncaughtExceptionHandler();
 
         private DefaultHttpProxyServerBootstrap() {
         }
@@ -579,7 +597,8 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                 HttpFiltersSource filtersSource,
                 boolean transparent, int idleConnectionTimeout,
                 Collection<ActivityTracker> activityTrackers,
-                int connectTimeout, HostResolver serverResolver) {
+                int connectTimeout, HostResolver serverResolver,
+                boolean shutdownHook, UncaughtExceptionHandler uncaughtExceptionHandler) {
             this.original = original;
             this.transportProtocol = transportProtocol;
             this.requestedAddress = requestedAddress;
@@ -596,6 +615,8 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
             }
             this.connectTimeout = connectTimeout;
             this.serverResolver = serverResolver;
+            this.shutdownHook = shutdownHook;
+            this.uncaughtExceptionHandler = uncaughtExceptionHandler;
         }
 
         private DefaultHttpProxyServerBootstrap(Properties props) {
@@ -745,6 +766,19 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         }
 
         @Override
+        public HttpProxyServerBootstrap withShutdownHook(boolean shutdownHook) {
+            this.shutdownHook = shutdownHook;
+            return this;
+        }
+
+        @Override
+        public HttpProxyServerBootstrap withThreadpoolUnchaughtExceptionHandler(
+                UncaughtExceptionHandler handler) {
+            this.uncaughtExceptionHandler = handler;
+            return this;
+        }
+
+        @Override
         public HttpProxyServer start() {
             return build().start();
         }
@@ -756,7 +790,7 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                 serverGroup = original.serverGroup;
             }
             else {
-                serverGroup = new ServerGroup(name);
+                serverGroup = new ServerGroup(name, shutdownHook, uncaughtExceptionHandler);
             }
 
             return new DefaultHttpProxyServer(serverGroup,
@@ -765,7 +799,7 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                     proxyAuthenticator, chainProxyManager, mitmManager,
                     filtersSource, transparent,
                     idleConnectionTimeout, activityTrackers, connectTimeout,
-                    serverResolver);
+                    serverResolver, shutdownHook, uncaughtExceptionHandler);
         }
 
         private InetSocketAddress determineListenAddress() {
@@ -788,6 +822,13 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                     }
                 }
             }
+        }
+    }
+
+    private static class DefaultUncaughtExceptionHandler
+            implements UncaughtExceptionHandler {
+        public void uncaughtException(final Thread t, final Throwable e) {
+            LOG.error("Uncaught throwable", e);
         }
     }
 }
