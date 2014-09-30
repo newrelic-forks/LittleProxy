@@ -35,6 +35,14 @@ public class HttpFiltersAdapter implements HttpFilters {
     }
 
     @Override
+    public void proxyToServerBytesSending(int numberOfBytes) {
+    }
+
+    @Override
+    public void proxyToServerBytesSent(int numberOfBytes) {
+    }
+
+    @Override
     public void proxyToServerRequestSending() {
     }
 
@@ -45,6 +53,14 @@ public class HttpFiltersAdapter implements HttpFilters {
     @Override
     public HttpObject serverToProxyResponse(HttpObject httpObject) {
         return httpObject;
+    }
+
+    @Override
+    public void serverToProxyBytesReceiving(int numberOfBytes) {
+    }
+
+    @Override
+    public void serverToProxyBytesReceived(int numberOfBytes) {
     }
 
     @Override

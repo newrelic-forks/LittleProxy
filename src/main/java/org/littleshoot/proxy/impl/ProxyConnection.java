@@ -666,18 +666,32 @@ abstract class ProxyConnection<I extends HttpObject> extends
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg)
                 throws Exception {
+
+            int numberOfBytes = msg instanceof ByteBuf
+                    ? ((ByteBuf) msg).readableBytes()
+                    : -1;
+
             try {
-                if (msg instanceof ByteBuf) {
-                    bytesRead(((ByteBuf) msg).readableBytes());
+                if (numberOfBytes >= 0) {
+                    beforeBytesRead(numberOfBytes);
                 }
             } catch (Throwable t) {
-                LOG.warn("Unable to record bytesRead", t);
+                LOG.warn("Unable to record beforeBytesWritten", t);
             } finally {
                 super.channelRead(ctx, msg);
             }
+
+            try {
+                if (numberOfBytes >= 0) {
+                    afterBytesRead(numberOfBytes);
+                }
+            } catch (Throwable t) {
+                LOG.warn("Unable to record afterBytesWritten", t);
+            }
         }
 
-        protected abstract void bytesRead(int numberOfBytes);
+        protected abstract void beforeBytesRead(int numberOfBytes);
+        protected abstract void afterBytesRead(int numberOfBytes);
     }
 
     /**
@@ -712,18 +726,32 @@ abstract class ProxyConnection<I extends HttpObject> extends
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg)
                 throws Exception {
+
+            HttpResponse originalResponse = msg instanceof HttpResponse
+                    ? (HttpResponse) msg
+                    : null;
+
             try {
-                if (msg instanceof HttpResponse) {
-                    responseRead((HttpResponse) msg);
+                if (null != originalResponse) {
+                    beforeResponseRead(originalResponse);
                 }
             } catch (Throwable t) {
-                LOG.warn("Unable to record bytesRead", t);
+                LOG.warn("Unable to record beforeRequestWritten", t);
             } finally {
                 super.channelRead(ctx, msg);
             }
+
+            try {
+                if (null != originalResponse) {
+                    afterResponseRead(originalResponse);
+                }
+            } catch (Throwable t) {
+                LOG.warn("Unable to record afterRequestWritten", t);
+            }
         }
 
-        protected abstract void responseRead(HttpResponse httpResponse);
+        protected abstract void beforeResponseRead(HttpResponse httpResponse);
+        protected abstract void afterResponseRead(HttpResponse httpResponse);
     }
 
     /**
@@ -736,18 +764,32 @@ abstract class ProxyConnection<I extends HttpObject> extends
         public void write(ChannelHandlerContext ctx,
                 Object msg, ChannelPromise promise)
                 throws Exception {
+
+            int numberOfBytes = msg instanceof ByteBuf
+                    ? ((ByteBuf) msg).readableBytes()
+                    : -1;
+
             try {
-                if (msg instanceof ByteBuf) {
-                    bytesWritten(((ByteBuf) msg).readableBytes());
+                if (numberOfBytes >= 0) {
+                    beforeBytesWritten(numberOfBytes);
                 }
             } catch (Throwable t) {
-                LOG.warn("Unable to record bytesRead", t);
+                LOG.warn("Unable to record beforeBytesWritten", t);
             } finally {
                 super.write(ctx, msg, promise);
             }
+
+            try {
+                if (numberOfBytes >= 0) {
+                    afterBytesWritten(numberOfBytes);
+                }
+            } catch (Throwable t) {
+                LOG.warn("Unable to record afterBytesWritten", t);
+            }
         }
 
-        protected abstract void bytesWritten(int numberOfBytes);
+        protected abstract void beforeBytesWritten(int numberOfBytes);
+        protected abstract void afterBytesWritten(int numberOfBytes);
     }
 
     /**
@@ -761,33 +803,31 @@ abstract class ProxyConnection<I extends HttpObject> extends
                 Object msg, ChannelPromise promise)
                 throws Exception {
 
-            HttpRequest originalRequest = null;
-            if (msg instanceof HttpRequest) {
-                originalRequest = (HttpRequest) msg;
+            HttpRequest originalRequest = msg instanceof HttpRequest
+                    ? (HttpRequest) msg
+                    : null;
+
+            try {
+                if (null != originalRequest) {
+                    beforeRequestWritten(originalRequest);
+                }
+            } catch (Throwable t) {
+                LOG.warn("Unable to record beforeRequestWritten", t);
+            } finally {
+                super.write(ctx, msg, promise);
             }
 
             try {
                 if (null != originalRequest) {
-                    requestWritten(originalRequest);
+                    afterRequestWritten(originalRequest);
                 }
             } catch (Throwable t) {
-                LOG.warn("Unable to record bytesRead", t);
-            } finally {
-                if (null != originalRequest) {
-                    getHttpFiltersFromProxyServer(originalRequest)
-                            .proxyToServerRequestSending();
-                }
-
-                super.write(ctx, msg, promise);
-
-                if (null != originalRequest) {
-                    getHttpFiltersFromProxyServer(originalRequest)
-                            .proxyToServerRequestSent();
-                }
+                LOG.warn("Unable to record afterRequestWritten", t);
             }
         }
 
-        protected abstract void requestWritten(HttpRequest httpRequest);
+        protected abstract void beforeRequestWritten(HttpRequest httpRequest);
+        protected abstract void afterRequestWritten(HttpRequest httpRequest);
     }
 
     /**

@@ -1161,7 +1161,12 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      **************************************************************************/
     private final BytesReadMonitor bytesReadMonitor = new BytesReadMonitor() {
         @Override
-        protected void bytesRead(int numberOfBytes) {
+        protected void beforeBytesRead(int numberOfBytes) {
+            // no-op
+        }
+
+        @Override
+        protected void afterBytesRead(int numberOfBytes) {
             FlowContext flowContext = flowContext();
             for (ActivityTracker tracker : proxyServer
                     .getActivityTrackers()) {
@@ -1183,7 +1188,12 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     private BytesWrittenMonitor bytesWrittenMonitor = new BytesWrittenMonitor() {
         @Override
-        protected void bytesWritten(int numberOfBytes) {
+        protected void beforeBytesWritten(int numberOfBytes) {
+            // no-op
+        }
+
+        @Override
+        protected void afterBytesWritten(int numberOfBytes) {
             FlowContext flowContext = flowContext();
             for (ActivityTracker tracker : proxyServer
                     .getActivityTrackers()) {

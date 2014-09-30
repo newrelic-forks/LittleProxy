@@ -150,7 +150,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
         this.currentFilters = initialFilters;
 
         // Report connection status to HttpFilters
-        this.currentFilters.proxyToServerConnectionQueued();
+        getHttpFiltersFromProxyServer().proxyToServerConnectionQueued();
 
         setupConnectionParameters();
     }
@@ -175,7 +175,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
     protected ConnectionState readHTTPInitial(HttpResponse httpResponse) {
         LOG.debug("Received raw response: {}", httpResponse);
 
-        currentFilters.serverToProxyResponseReceiving();
+        getHttpFiltersFromProxyServer().serverToProxyResponseReceiving();
 
         rememberCurrentResponse(httpResponse);
         respondWith(httpResponse);
@@ -183,7 +183,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
         if (ProxyUtils.isChunked(httpResponse)) {
             return AWAITING_CHUNK;
         } else {
-            currentFilters.serverToProxyResponseReceived();
+            getHttpFiltersFromProxyServer().serverToProxyResponseReceived();
             return AWAITING_INITIAL;
         }
     }
@@ -420,6 +420,10 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
     @Override
     protected HttpFilters getHttpFiltersFromProxyServer(HttpRequest httpRequest) {
+        return getHttpFiltersFromProxyServer();
+    }
+
+    protected HttpFilters getHttpFiltersFromProxyServer() {
         return currentFilters;
     }
 
@@ -821,7 +825,17 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
      **************************************************************************/
     private final BytesReadMonitor bytesReadMonitor = new BytesReadMonitor() {
         @Override
-        protected void bytesRead(int numberOfBytes) {
+        protected void beforeBytesRead(int numberOfBytes) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().serverToProxyBytesReceiving(numberOfBytes);
+        }
+
+        @Override
+        protected void afterBytesRead(int numberOfBytes) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().serverToProxyBytesReceived(numberOfBytes);
+
+            // Notify ActivityTracker
             FullFlowContext flowContext = new FullFlowContext(clientConnection,
                     ProxyToServerConnection.this);
             for (ActivityTracker tracker : proxyServer
@@ -833,7 +847,17 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
     private ResponseReadMonitor responseReadMonitor = new ResponseReadMonitor() {
         @Override
-        protected void responseRead(HttpResponse httpResponse) {
+        protected void beforeResponseRead(HttpResponse httpResponse) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().serverToProxyResponseReceiving();
+        }
+
+        @Override
+        protected void afterResponseRead(HttpResponse httpResponse) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().serverToProxyResponseReceived();
+
+            // Notify ActivityTracker
             FullFlowContext flowContext = new FullFlowContext(clientConnection,
                     ProxyToServerConnection.this);
             for (ActivityTracker tracker : proxyServer
@@ -845,7 +869,17 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
     private BytesWrittenMonitor bytesWrittenMonitor = new BytesWrittenMonitor() {
         @Override
-        protected void bytesWritten(int numberOfBytes) {
+        protected void beforeBytesWritten(int numberOfBytes) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().proxyToServerBytesSending(numberOfBytes);
+        }
+
+        @Override
+        protected void afterBytesWritten(int numberOfBytes) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().proxyToServerBytesSent(numberOfBytes);
+
+            // Notify ActivityTracker
             FullFlowContext flowContext = new FullFlowContext(clientConnection,
                     ProxyToServerConnection.this);
             for (ActivityTracker tracker : proxyServer
@@ -857,7 +891,17 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
 
     private RequestWrittenMonitor requestWrittenMonitor = new RequestWrittenMonitor() {
         @Override
-        protected void requestWritten(HttpRequest httpRequest) {
+        protected void beforeRequestWritten(HttpRequest httpRequest) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().proxyToServerRequestSending();
+        }
+
+        @Override
+        protected void afterRequestWritten(HttpRequest httpRequest) {
+            // Notify HttpFilter
+            getHttpFiltersFromProxyServer().proxyToServerRequestSent();
+
+            // Notify ActivityTracker
             FullFlowContext flowContext = new FullFlowContext(clientConnection,
                     ProxyToServerConnection.this);
             for (ActivityTracker tracker : proxyServer

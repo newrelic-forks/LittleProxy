@@ -92,6 +92,18 @@ public interface HttpFilters {
     HttpResponse proxyToServerRequest(HttpObject httpObject);
 
     /**
+     * Informs filter that an amount of bytes is going from proxy to server.
+     * @param numberOfBytes
+     */
+    void proxyToServerBytesSending(int numberOfBytes);
+
+    /**
+     * Informs filter that an amount of bytes went from proxy to server.
+     * @param numberOfBytes
+     */
+    void proxyToServerBytesSent(int numberOfBytes);
+
+    /**
      * Informs filter that proxy to server request is being sent.
      */
     void proxyToServerRequestSending();
@@ -110,6 +122,18 @@ public interface HttpFilters {
      *         force a disconnect.
      */
     HttpObject serverToProxyResponse(HttpObject httpObject);
+
+    /**
+     * Informs filter that an amount of bytes is going from server to proxy.
+     * @param numberOfBytes
+     */
+    void serverToProxyBytesReceiving(int numberOfBytes);
+
+    /**
+     * Informs filter that an amount of bytes went from server to proxy.
+     * @param numberOfBytes
+     */
+    void serverToProxyBytesReceived(int numberOfBytes);
 
     /**
      * Informs filter that server to proxy response is being received.
