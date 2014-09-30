@@ -1,47 +1,58 @@
 package org.littleshoot.proxy;
 
-import java.net.InetSocketAddress;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
-
 import org.littleshoot.proxy.impl.ClientToProxyConnection;
 
+import javax.net.ssl.SSLSession;
+import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
+
 /**
- * <p>
  * Encapsulates contextual information for flow information that's being
  * reported to a {@link ActivityTracker}.
- * </p>
+ * <p/>
+ * NOTE: <code>WeakReference<ProxyToServerConnection></code> is used to hold
+ * flow information. This means that, when all strong references to this object
+ * are gone, successive calls to this objects might return <code>null</code>.
  */
 public class FlowContext {
-    private final InetSocketAddress clientAddress;
-    private final SSLSession clientSslSession;
+    private final WeakReference<ClientToProxyConnection> clientToProxyConnection;
 
-    public FlowContext(ClientToProxyConnection clientConnection) {
-        super();
-        this.clientAddress = clientConnection.getClientAddress();
-        SSLEngine sslEngine = clientConnection.getSslEngine();
-        this.clientSslSession = sslEngine != null ? sslEngine.getSession()
-                : null;
+    public FlowContext(ClientToProxyConnection clientToProxyConnection) {
+        this.clientToProxyConnection =
+                new WeakReference<ClientToProxyConnection>(
+                        clientToProxyConnection);
     }
 
     /**
      * The address of the client.
-     * 
+     *
      * @return
      */
     public InetSocketAddress getClientAddress() {
-        return clientAddress;
+        ClientToProxyConnection connection = this.clientToProxyConnection.get();
+        return null == connection ? null : connection.getClientAddress();
     }
 
     /**
      * If using SSL, this returns the {@link SSLSession} on the client
      * connection.
-     * 
+     *
      * @return
      */
     public SSLSession getClientSslSession() {
-        return clientSslSession;
+        ClientToProxyConnection connection = this.clientToProxyConnection.get();
+        if (null != connection && null != connection.getSslEngine()) {
+            return connection.getSslEngine().getSession();
+        }
+        return null;
     }
 
+    /**
+     * The ClientToProxyConnection associated with this comms.
+     *
+     * @return
+     */
+    public ClientToProxyConnection getClientToProxyConnection() {
+        return clientToProxyConnection.get();
+    }
 }
