@@ -365,9 +365,11 @@ abstract class ProxyConnection<I extends HttpObject> extends
         this.sslEngine = sslEngine;
         sslEngine.setUseClientMode(runsAsSslClient);
         sslEngine.setNeedClientAuth(authenticateClients);
+
         if (null != channel) {
             channel.config().setAutoRead(true);
         }
+
         SslHandler handler = new SslHandler(sslEngine);
         pipeline.addFirst("ssl", handler);
         return handler.handshakeFuture();
