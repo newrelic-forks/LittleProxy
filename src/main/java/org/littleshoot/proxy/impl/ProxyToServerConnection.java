@@ -799,7 +799,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
      * @throws UnknownHostException
      *             if hostAndPort could not be resolved
      */
-    private static InetSocketAddress addressFor(String hostAndPort,
+    private InetSocketAddress addressFor(String hostAndPort,
             DefaultHttpProxyServer proxyServer)
             throws UnknownHostException {
         String host;
@@ -808,7 +808,12 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
             host = StringUtils.substringBefore(hostAndPort, ":");
             String portString = StringUtils.substringAfter(hostAndPort,
                     ":");
-            port = Integer.parseInt(portString);
+            try {
+                port = Integer.parseInt(portString);
+            } catch (NumberFormatException nfe) {
+                LOG.warn("Unable to parse port number from '{}' - defaulting to 80", hostAndPort);
+                port = 80;
+            }
         } else {
             host = hostAndPort;
             port = 80;
