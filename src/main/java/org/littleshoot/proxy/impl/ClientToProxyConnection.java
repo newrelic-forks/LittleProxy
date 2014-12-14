@@ -31,7 +31,7 @@ import static org.littleshoot.proxy.impl.ConnectionState.*;
  * ClientToProxyConnection can have multiple {@link ProxyToServerConnection}s,
  * at most one per outbound host:port.
  * </p>
- * 
+ * <p/>
  * <p>
  * Once a ProxyToServerConnection has been created for a given server, it is
  * continually reused. The ProxyToServerConnection goes through its own
@@ -40,7 +40,7 @@ import static org.littleshoot.proxy.impl.ConnectionState.*;
  * per server. The one exception to this is CONNECT tunneling - if a connection
  * has been used for CONNECT tunneling, that connection will never be reused.
  * </p>
- * 
+ * <p/>
  * <p>
  * As the ProxyToServerConnections receive responses from their servers, they
  * feed these back to the client by calling
@@ -53,9 +53,9 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             200, "HTTP/1.1 200 Connection established");
 
     private static final Set<String> HOP_BY_HOP_HEADERS = new HashSet<String>(
-            Arrays.asList(new String[] { "connection", "keep-alive",
+            Arrays.asList(new String[]{"connection", "keep-alive",
                     "proxy-authenticate", "proxy-authorization", "te",
-                    "trailers", "upgrade" }));
+                    "trailers", "upgrade"}));
 
     /**
      * Keep track of all ProxyToServerConnections by host+port.
@@ -132,9 +132,11 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         LOG.debug("Created ClientToProxyConnection");
     }
 
-    /***************************************************************************
+    /**
+     * ************************************************************************
      * Reading
-     **************************************************************************/
+     * ************************************************************************
+     */
 
     @Override
     protected ConnectionState readHTTPInitial(HttpRequest httpRequest) {
@@ -154,17 +156,17 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * <p>
      * Reads an {@link HttpRequest}.
      * </p>
-     * 
+     * <p/>
      * <p>
      * If we don't yet have a {@link ProxyToServerConnection} for the desired
      * server, this takes care of creating it.
      * </p>
-     * 
+     * <p/>
      * <p>
      * Note - the "server" could be a chained proxy, not the final endpoint for
      * the request.
      * </p>
-     * 
+     *
      * @param httpRequest
      * @return
      */
@@ -276,23 +278,18 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Send a response to the client.
-     * 
-     * @param serverConnection
-     *            the ProxyToServerConnection that's responding
-     * @param filters
-     *            the filters to apply to the response
-     * @param currentHttpRequest
-     *            the HttpRequest that prompted this response
-     * @param currentHttpResponse
-     *            the HttpResponse corresponding to this data (when doing
-     *            chunked transfers, this is the initial HttpResponse object
-     *            that came in before the other chunks)
-     * @param httpObject
-     *            the data with which to respond
+     *
+     * @param serverConnection    the ProxyToServerConnection that's responding
+     * @param filters             the filters to apply to the response
+     * @param currentHttpRequest  the HttpRequest that prompted this response
+     * @param currentHttpResponse the HttpResponse corresponding to this data (when doing
+     *                            chunked transfers, this is the initial HttpResponse object
+     *                            that came in before the other chunks)
+     * @param httpObject          the data with which to respond
      */
     void respond(ProxyToServerConnection serverConnection, HttpFilters filters,
-            HttpRequest currentHttpRequest, HttpResponse currentHttpResponse,
-            HttpObject httpObject) {
+                 HttpRequest currentHttpRequest, HttpResponse currentHttpResponse,
+                 HttpObject httpObject) {
         httpObject = filters.serverToProxyResponse(httpObject);
         if (httpObject == null) {
             forceDisconnect(serverConnection);
@@ -325,7 +322,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * Used for filtering. If a request filter returned a response, we short
      * circuit processing by sending the response to the client and
      * disconnecting.
-     * 
+     *
      * @param shortCircuitResponse
      * @return
      */
@@ -361,7 +358,9 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             response.headers().set("Proxy-Connection", "Keep-Alive");
             ProxyUtils.addVia(response);
             return writeToChannel(response);
-        };
+        }
+
+        ;
     };
 
     /**
@@ -402,7 +401,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Called when {@link ProxyToServerConnection} starts its connection flow.
-     * 
+     *
      * @param serverConnection
      */
     protected void serverConnectionFlowStarted(
@@ -414,7 +413,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * If the {@link ProxyToServerConnection} completes its connection lifecycle
      * successfully, this method is called to let us know about it.
-     * 
+     *
      * @param serverConnection
      * @param shouldForwardInitialRequest
      */
@@ -432,25 +431,23 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * If the {@link ProxyToServerConnection} fails to complete its connection
      * lifecycle successfully, this method is called to let us know about it.
-     * 
+     * <p/>
      * <p>
      * After failing to connect to the server, one of two things can happen:
      * </p>
-     * 
+     * <p/>
      * <ol>
      * <li>If the server was a chained proxy, we fall back to connecting to the
      * ultimate endpoint directly.</li>
      * <li>If the server was the ultimate endpoint, we return a 502 Bad Gateway
      * to the client.</li>
      * </ol>
-     * 
+     *
      * @param serverConnection
      * @param lastStateBeforeFailure
-     * @param cause
-     *            what caused the failure
-     * 
+     * @param cause                  what caused the failure
      * @return true if we're falling back to a another chained proxy (or direct
-     *         connection) and trying again
+     * connection) and trying again
      */
     protected boolean serverConnectionFailed(
             ProxyToServerConnection serverConnection,
@@ -498,7 +495,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * On disconnect of the server, track that we have one fewer connected
      * servers and then disconnect the client if necessary.
-     * 
+     *
      * @param serverConnection
      */
     protected void serverDisconnected(ProxyToServerConnection serverConnection) {
@@ -542,7 +539,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * When a server becomes saturated, we stop reading from the client.
-     * 
+     *
      * @param serverConnection
      */
     synchronized protected void serverBecameSaturated(
@@ -556,7 +553,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * When a server becomes writeable, we check to see if all servers are
      * writeable and if they are, we resume reading.
-     * 
+     *
      * @param serverConnection
      */
     synchronized protected void serverBecameWriteable(
@@ -595,7 +592,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * Initialize the {@ChannelPipeline} for the client to
      * proxy channel.
-     * 
+     *
      * @param pipeline
      */
     private void initChannelPipeline(ChannelPipeline pipeline) {
@@ -669,14 +666,14 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Determine whether or not the client connection should be closed.
-     * 
+     *
      * @param req
      * @param res
      * @param httpObject
      * @return
      */
     private boolean shouldCloseClientConnection(HttpRequest req,
-            HttpResponse res, HttpObject httpObject) {
+                                                HttpResponse res, HttpObject httpObject) {
         if (ProxyUtils.isChunked(res)) {
             // If the response is chunked, we want to return false unless it's
             // the last chunk. If it is the last chunk, then we want to pass
@@ -709,30 +706,27 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * Determines if the remote connection should be closed based on the request
      * and response pair. If the request is HTTP 1.0 with no keep-alive header,
      * for example, the connection should be closed.
-     * 
+     * <p/>
      * This in part determines if we should close the connection. Here's the
      * relevant section of RFC 2616:
-     * 
+     * <p/>
      * "HTTP/1.1 defines the "close" connection option for the sender to signal
      * that the connection will be closed after completion of the response. For
      * example,
-     * 
+     * <p/>
      * Connection: close
-     * 
+     * <p/>
      * in either the request or the response header fields indicates that the
      * connection SHOULD NOT be considered `persistent' (section 8.1) after the
      * current request/response is complete."
-     * 
-     * @param req
-     *            The request.
-     * @param res
-     *            The response.
-     * @param msg
-     *            The message.
+     *
+     * @param req The request.
+     * @param res The response.
+     * @param msg The message.
      * @return Returns true if the connection should close.
      */
     private boolean shouldCloseServerConnection(HttpRequest req,
-            HttpResponse res, HttpObject msg) {
+                                                HttpResponse res, HttpObject msg) {
         if (ProxyUtils.isChunked(res)) {
             // If the response is chunked, we want to return false unless it's
             // the last chunk. If it is the last chunk, then we want to pass
@@ -772,17 +766,17 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * <p>
      * Checks whether the given HttpRequest requires authentication.
      * </p>
-     * 
+     * <p/>
      * <p>
      * If the request contains credentials, these are checked.
      * </p>
-     * 
+     * <p/>
      * <p>
      * If authentication is still required, either because no credentials were
      * provided or the credentials were wrong, this writes a 407 response to the
      * client.
      * </p>
-     * 
+     *
      * @param request
      * @return
      */
@@ -861,7 +855,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Copy the given {@link HttpRequest} verbatim.
-     * 
+     *
      * @param original
      * @return
      */
@@ -880,7 +874,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * Chunked encoding is an HTTP 1.1 feature, but sometimes we get a chunked
      * response that reports its HTTP version as 1.0. In this case, we change it
      * to 1.1.
-     * 
+     *
      * @param httpResponse
      */
     private void fixHttpVersionHeaderIfNecessary(HttpResponse httpResponse) {
@@ -898,7 +892,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * If and only if our proxy is not running in transparent mode, modify the
      * request headers to reflect that it was proxied.
-     * 
+     *
      * @param httpRequest
      */
     private void modifyRequestHeadersToReflectProxying(HttpRequest httpRequest) {
@@ -934,7 +928,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * If and only if our proxy is not running in transparent mode, modify the
      * response headers to reflect that it was proxied.
-     * 
+     *
      * @param httpResponse
      * @return
      */
@@ -961,9 +955,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Remove sdch from encodings we accept since we can't decode it.
-     * 
-     * @param headers
-     *            The headers to modify
+     *
+     * @param headers The headers to modify
      */
     private void removeSDCHEncoding(HttpHeaders headers) {
         String ae = headers.get(HttpHeaders.Names.ACCEPT_ENCODING);
@@ -979,9 +972,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * Switch the de-facto standard "Proxy-Connection" header to "Connection"
      * when we pass it along to the remote host. This is largely undocumented
      * but seems to be what most browsers and servers expect.
-     * 
-     * @param headers
-     *            The headers to modify
+     *
+     * @param headers The headers to modify
      */
     private void switchProxyConnectionHeader(HttpHeaders headers) {
         String proxyConnectionKey = "Proxy-Connection";
@@ -994,14 +986,13 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * RFC2616 Section 14.10
-     * 
+     * <p/>
      * HTTP/1.1 proxies MUST parse the Connection header field before a message
      * is forwarded and, for each connection-token in this field, remove any
      * header field(s) from the message with the same name as the
      * connection-token.
-     * 
-     * @param headers
-     *            The headers to modify
+     *
+     * @param headers The headers to modify
      */
     private void stripConnectionTokens(HttpHeaders headers) {
         if (headers.contains("Connection")) {
@@ -1016,9 +1007,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * Removes all headers that should not be forwarded. See RFC 2616 13.5.1
      * End-to-end and Hop-by-hop Headers.
-     * 
-     * @param headers
-     *            The headers to modify
+     *
+     * @param headers The headers to modify
      */
     private void stripHopByHopHeaders(HttpHeaders headers) {
         Set<String> headerNames = headers.names();
@@ -1035,7 +1025,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Tells the client that something went wrong trying to proxy its request.
-     * 
+     *
      * @param request
      */
     private void writeBadGateway(HttpRequest request) {
@@ -1060,14 +1050,14 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Factory for {@link DefaultFullHttpResponse}s.
-     * 
+     *
      * @param httpVersion
      * @param status
      * @param body
      * @return
      */
     private DefaultFullHttpResponse responseFor(HttpVersion httpVersion,
-            HttpResponseStatus status, String body) {
+                                                HttpResponseStatus status, String body) {
         byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
         ByteBuf content = Unpooled.copiedBuffer(bytes);
         return responseFor(httpVersion, status, content, bytes.length);
@@ -1075,7 +1065,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Factory for {@link DefaultFullHttpResponse}s.
-     * 
+     *
      * @param httpVersion
      * @param status
      * @param body
@@ -1083,7 +1073,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * @return
      */
     private DefaultFullHttpResponse responseFor(HttpVersion httpVersion,
-            HttpResponseStatus status, ByteBuf body, int contentLength) {
+                                                HttpResponseStatus status, ByteBuf body, int contentLength) {
         DefaultFullHttpResponse response = body != null ? new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, status, body)
                 : new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
@@ -1097,19 +1087,19 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
 
     /**
      * Factory for {@link DefaultFullHttpResponse}s.
-     * 
+     *
      * @param httpVersion
      * @param status
      * @return
      */
     private DefaultFullHttpResponse responseFor(HttpVersion httpVersion,
-            HttpResponseStatus status) {
+                                                HttpResponseStatus status) {
         return responseFor(httpVersion, status, (ByteBuf) null, 0);
     }
 
     /**
      * Identify the host and port for a request.
-     * 
+     *
      * @param httpRequest
      * @return
      */
@@ -1153,12 +1143,14 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         this.mitming = isMitming;
     }
 
-    /***************************************************************************
+    /**
+     * ************************************************************************
      * Activity Tracking/Statistics
-     * 
+     * <p/>
      * We track statistics on bytes, requests and responses by adding handlers
      * at the appropriate parts of the pipeline (see initChannelPipeline()).
-     **************************************************************************/
+     * ************************************************************************
+     */
     private final BytesReadMonitor bytesReadMonitor = new BytesReadMonitor() {
         @Override
         protected void beforeBytesRead(int numberOfBytes) {

@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * establishing a socket connection, SSL handshaking, HTTP CONNECT request
  * processing, and so on.
  */
-class ConnectionFlow {
+public class ConnectionFlow {
     private Queue<ConnectionFlowStep> steps = new ConcurrentLinkedQueue<ConnectionFlowStep>();
 
     private final ClientToProxyConnection clientConnection;
