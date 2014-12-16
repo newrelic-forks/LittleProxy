@@ -106,4 +106,12 @@ public class HttpFiltersAdapter implements HttpFilters {
     @Override
     public void proxyToServerConnectionSucceeded() {
     }
+
+    @Override
+    public void clientToProxyExceptionCaught(String message, Throwable cause) {
+    }
+
+    @Override
+    public void proxyToServerExceptionCaught(String message, Throwable cause) {
+    }
 }

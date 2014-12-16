@@ -202,4 +202,18 @@ public interface HttpFilters {
      */
     void proxyToServerConnectionSucceeded();
 
+    /**
+     * Informs filter that a client to proxy connection has thrown an exception
+     * @param message Description of the exception
+     * @param cause Actual exception caught
+     */
+    void clientToProxyExceptionCaught(String message, Throwable cause);
+
+    /**
+     * Informs filter that a proxy to server connection has thrown an exception
+     * @param message Description of the exception
+     * @param cause Actual exception caught
+     */
+    void proxyToServerExceptionCaught(String message, Throwable cause);
+
 }

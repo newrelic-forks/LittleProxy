@@ -376,6 +376,9 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
         }
         LOG.log(logLevel, message, cause);
 
+        // Inform HttpFilters of the Exception
+        getHttpFiltersFromProxyServer().proxyToServerExceptionCaught(message, cause);
+
         if (!is(DISCONNECTED)) {
             LOG.log(logLevel, "Disconnecting open connection");
             disconnect();

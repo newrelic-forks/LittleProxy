@@ -582,6 +582,10 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         } else {
             LOG.error(message, cause);
         }
+
+        // Inform HttpFilters of the Exception
+        currentFilters.clientToProxyExceptionCaught(message, cause);
+
         disconnect();
     }
 
