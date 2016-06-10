@@ -72,7 +72,7 @@ public class EndToEndStoppingTest {
         // final String url = "https://www.exceptional.io/api/errors?" +
         // "api_key="+"9848f38fb5ad1db0784675b75b9152c87dc1eb95"+"&protocol_version=6";
 
-        final String url = "https://www.exceptional.io";
+        final String url = "https://www.newrelic.com";
         final String[] sites = { url };// "https://www.google.com.ua"};//"https://exceptional.io"};//"http://www.google.com.ua"};
         for (final String site : sites) {
             runSiteTestWithHttpClient(site);
